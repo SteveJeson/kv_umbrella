@@ -9,13 +9,14 @@ defmodule Efence.Router.User do
   end
 
   post "startEfence" do
-    arr = String.split(conn.params["deviceCodes"], ",")
-    Logger.info(Enum.take(arr, -1))
+
+    Efence.Test.dispatch_devicecodes(params)
 
     json(conn, %{ success: true,
       statusCode: 1,
       message: "启动电子围栏成功！",
-      data: params[:code]})
+      data: ""})
+
   end
 
   post "stopEfence" do

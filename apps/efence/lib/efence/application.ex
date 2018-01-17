@@ -10,7 +10,7 @@ defmodule Efence.Application do
     [
         {:name, {:local, :worker}},
         {:worker_module, Efence.Worker},
-        {:size, 5},
+        {:size, 10000},
         {:max_overflow, 2},
       {:node, "192.168.1.113"}
     ]
