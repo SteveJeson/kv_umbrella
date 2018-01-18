@@ -12,9 +12,27 @@ defmodule Efence.Test do
   def dispatch_devicecodes(params) do
     efence_id = params[:code]
     interval = params[:interval]
-    device_code_list = String.split(params[:deviceCodes], ",")
-                       |> Enum.map(fn i -> async_call_square_root(i) end)
+    String.split(params[:deviceCodes], ",")
+                       |> Enum.map(fn i -> async_call_efence_root(efence_id, i, interval) end)
                        |> Enum.each(fn task -> await_and_inspect(task) end)
+  end
+
+  defp async_call_efence_root(efenceId, deviceCode, interval) do
+#    Task.async(fn ->
+#      :poolboy.transaction(
+#        :worker,
+#        fn pid -> GenServer.call(pid, {:start, efenceId, deviceCode, interval}) end,
+#        @timeout
+#      )
+#    end)
+
+    Task.Supervisor.async {Efence.RouterTasks, :"a@127.0.0.1"}, fn ->
+      :poolboy.transaction(
+        :worker,
+        fn pid -> GenServer.call(pid, {:start, efenceId, deviceCode, interval}) end,
+        @timeout
+      )
+    end
   end
 
   defp async_call_square_root(i) do
@@ -29,6 +47,9 @@ defmodule Efence.Test do
 
   defp await_and_inspect(task), do: task |> Task.await(@timeout) |> IO.inspect()
 
-
+  def sum(a, b) do
+    sum = a + b
+    sum
+  end
 
 end

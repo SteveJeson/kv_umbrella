@@ -10,7 +10,7 @@ defmodule Efence.Application do
     [
         {:name, {:local, :worker}},
         {:worker_module, Efence.Worker},
-        {:size, 10000},
+        {:size, 100},
         {:max_overflow, 2},
       {:node, "192.168.1.113"}
     ]
@@ -23,8 +23,10 @@ defmodule Efence.Application do
     children = [
       # Starts a worker by calling: PoolboyApp.Worker.start_link(arg)
       # {PoolboyApp.Worker, arg},
-      :poolboy.child_spec(:worker, poolboy_config())
+      :poolboy.child_spec(:worker, poolboy_config()),
 #      :poolboy.child_spec(:worker1, poolboy_config())
+
+      {Task.Supervisor, name: Efence.RouterTasks},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

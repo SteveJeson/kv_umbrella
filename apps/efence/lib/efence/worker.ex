@@ -15,8 +15,8 @@ defmodule Efence.Worker do
     {:reply, x, state}
   end
 
-  def handle_call({:start, _efenceId, _deviceCode, _interval}, _from, state) do
-    IO.puts("process #{inspect(self())} deal device root of #{_deviceCode} efence of #{_efenceId}")
-    {:reply, _deviceCode, state}
+  def handle_call({:start, efenceId, deviceCode, interval}, _from, state) do
+    IO.puts("process #{inspect(self())} deal device root of #{deviceCode} efence of #{efenceId}")
+    {:reply, :ok, state}
   end
 end
