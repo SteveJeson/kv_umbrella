@@ -15,7 +15,7 @@ defmodule Efence.Mixfile do
   def application do
     [
       extra_applications: [:logger, :wx, :observer],
-      mod: {Efence.Application, []}
+#      mod: {Efence.Application, []}
     ]
   end
 
@@ -23,9 +23,10 @@ defmodule Efence.Mixfile do
   defp deps do
     [
       {:libcluster, "~> 2.1"},
-      {:distillery, "~> 1.5", runtime: false},
+      {:distillery, "~> 2.0", runtime: false},
       {:ecto, "~> 2.1.6"},
-      {:maru, "~> 0.12"},
+      {:cowboy, "~> 2.1"},
+      {:maru, "== 0.13.1"},
 
       # Optional dependency for runtime configuration loading.
       {:confex, "~> 3.3"},

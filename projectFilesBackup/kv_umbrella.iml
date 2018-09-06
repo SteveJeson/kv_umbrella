@@ -3,8 +3,9 @@
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/_build/dev/lib/kv_umbrella/ebin" />
     <output-test url="file://$MODULE_DIR$/_build/test/lib/kv_umbrella/ebin" />
+    <exclude-output />
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Elixir1.7.2" jdkType="Elixir SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
