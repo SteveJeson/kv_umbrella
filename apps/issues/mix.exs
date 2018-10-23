@@ -8,7 +8,8 @@ defmodule Issues.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       escript: escript_config(),
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -31,5 +32,18 @@ defmodule Issues.MixProject do
 
   def escript_config do
     [main_module: Issues.CLI]
+  end
+
+  defp package do
+    [
+      maintainers: ["Anton Fagerberg"],
+      description: "A concurrent project",
+      licenses: ["Apache 2"],
+      links: %{"GitHub" => "https://github.com/SteveJeson/kv_umbrella/tree/master/apps/issues"},
+      files: [
+        "mix.exs",
+        "README.md",
+      ]
+    ]
   end
 end
