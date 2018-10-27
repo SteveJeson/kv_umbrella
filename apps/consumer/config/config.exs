@@ -30,7 +30,7 @@ use Mix.Config
 #     import_config "#{Mix.env()}.exs"
 
 config :qprex, qprex: "task_queue_"
-config :host, host: "192.168.1.187"
+config :host, host: "192.168.1.161"
 config :port, port: 5672
 config :username, username: "admin"
 config :password, password: "123456"

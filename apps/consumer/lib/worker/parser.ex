@@ -1,6 +1,8 @@
 defmodule Parser do
 
   def parse_type_from_data(payload)  do
+    hexstr = Base.encode16(payload)
+    IO.puts "hex str : #{hexstr}"
     list = :binary.bin_to_list(payload)
     type = Enum.at(list, 0)
     {type, list}
@@ -16,40 +18,109 @@ defmodule Parser do
     end
   end
 
-  def jt_parser(data) do
-    String.pad_leading(Integer.to_string(Enum.at(data,48), 16),2,"0")
-#    dec = Enum.slice(data, 0, 49)
-    dec = Enum.chunk_by(data, fn x ->  end)
-    IO.puts(Enum.at(dec, 48))
-#    id = Integer.to_string(re, 16)
-#    IO.puts("device id is #{id}")
-#    hexstr = Integer.to_string(Enum.slice(data,0,byte_size(data)-1),16)
-#    IO.puts("hexstr is #{hexstr}")
-##    十六进制数据
-#    str = Base.encode16(data)
-#    IO.puts("str length: #{String.length(str)}")
-#    IO.puts(str)
-##    设备号
-#    id = String.slice(str, 0..11)
-#    IO.puts("device id: #{id}")
-##    定位数据的消息类型
-#    msgType = String.slice(str, 12..13)
-#    IO.puts("msgType: #{msgType}")
-##    iccid
-#    case msgType do
-#      "02" ->
-#        iccid = String.slice(str, 82..99)
-#        _ ->
-#    end
-#    alc = String.slice(str, 14..21)
-#    vehicle = String.slice(str, 22..29)
-#    lat = String.slice(str, 30..37)
-#    lon = String.slice(str, 38..45)
-#    hgt = String.slice(str, 46..49)
-#    spd = String.slice(str, 50..53)
-#    agl = String.slice(str, 54..57)
-#    gtm = String.slice(str, 58..69)
-#    IO.puts("gtm: #{gtm}")
+  def concat_ele_for_list([head | tail], accumulator, fieldname) do
+    concat_ele_for_list(tail, accumulator <> String.pad_leading(Integer.to_string(head, 16),2,"0"), fieldname)
+  end
 
+  def concat_ele_for_list([], accumulator, fieldname) do
+    %{"#{fieldname}": accumulator}
+  end
+
+  def jt_parser(data) do
+    device = %Device{}
+    id = Enum.slice(data, 0, 6)
+    idmap = concat_ele_for_list(id, "", :device_id)
+    device = put_kv_into_map(device, idmap)
+
+    msgtype = List.first(Enum.slice(data, 6, 1))
+    case msgtype do
+      0x01 ->
+        body = Enum.slice(data, 7, length(data)-7)
+        jt_body_parser(device, body)
+      0x02 ->
+        iccid = Enum.slice(data, 41, 10)
+        iccidmap = concat_ele_for_list(iccid, "", :iccid)
+        put_kv_into_map(device, iccidmap)
+          _ ->
+    end
+  end
+
+  def jt_body_parser(device, data) do
+    alarmsign = Enum.slice(data, 0, 4)
+    alarmsignmap = concat_ele_for_list(alarmsign, "", :alarm_sign)
+    device = put_kv_into_map(device, alarmsignmap)
+
+    vehiclestatus = Enum.slice(data, 4, 4)
+    vehiclestatusmap = concat_ele_for_list(vehiclestatus, "", :vehicle_status)
+    device = put_kv_into_map(device, vehiclestatusmap)
+
+    lat = Enum.slice(data, 8, 4)
+    latmap = concat_ele_for_list(lat, "", :lat)
+    device = put_kv_into_map(device, latmap)
+
+    lon = Enum.slice(data, 12, 4)
+    lonmap = concat_ele_for_list(lon, "", :lon)
+    device = put_kv_into_map(device, lonmap)
+
+    hgt = Enum.slice(data, 16, 2)
+    hgtmap = concat_ele_for_list(hgt, "", :height)
+    device = put_kv_into_map(device, hgtmap)
+
+    spd = Enum.slice(data, 18, 2)
+    spdmap = concat_ele_for_list(spd, "", :speed)
+    device = put_kv_into_map(device, spdmap)
+
+    agl = Enum.slice(data, 20, 2)
+    aglmap = concat_ele_for_list(agl, "", :direction)
+    device = put_kv_into_map(device, aglmap)
+
+    gtm = Enum.slice(data, 22, 6)
+    gtmap = concat_ele_for_list(gtm, "", :daytime)
+    device = put_kv_into_map(device, gtmap)
+
+    io_put(device)
+
+  end
+
+  def jt_body_extension_parser(list, n, device)  do
+    sign = Enum.at(list, n)
+    case sign do
+      0x01 ->
+        mile = Enum.slice(list, n + 2, Enum.at(list, n + 1))
+        milemap = concat_ele_for_list(mile, "", :mile)
+        device = put_kv_into_map(device, milemap)
+      0x02 ->
+        oil = Enum.slice(list, n + 2, Enum.at(list, n + 1))
+        oilmap = concat_ele_for_list(oil, "", :oil)
+        device = put_kv_into_map(device, oilmap)
+      _ ->
+        IO.puts("nothing to do.")
+
+    end
+
+    if n < length(list) do
+      jt_body_extension_parser(list, n + 1 + Enum.at(list, n + 1))
+    end
+  end
+
+
+  def put_kv_into_map(foo,boo) do
+    keys = Map.keys(boo)
+    key = List.first(keys)
+    values = Map.values(boo)
+    value = List.first(values)
+    %{foo | "#{key}": value}
+  end
+
+  def io_put(dmap) do
+    IO.puts("deviceId: #{dmap.device_id}")
+    IO.puts("alarmSign: #{dmap.alarm_sign}")
+    IO.puts("vehicleStatus: #{dmap.vehicle_status}")
+    IO.puts("lat: #{dmap.lat}")
+    IO.puts("lon: #{dmap.lon}")
+    IO.puts("height: #{dmap.height}")
+    IO.puts("speed: #{dmap.speed}")
+    IO.puts("direction: #{dmap.direction}")
+    IO.puts("daytime: #{dmap.daytime}")
   end
 end
